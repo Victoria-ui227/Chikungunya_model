@@ -42,7 +42,7 @@ params <- c(
   b = 0.41,                 
   beta_hm = 0.442,           
   beta_mh = 0.333,           
-  alpha = 1/(60*365),        # Aging S1 -> S2
+  alpha = 1/365,        # Aging S1 -> S2
   Lambda_m = 35.5            # Mosquito recruitment rate
 )
 
@@ -79,9 +79,9 @@ reactions <- list(
            "E1_to_Is"),
   
   # Aging S1 -> S2
-  # reaction(~ alpha * S1, 
-  #          c(S1 = -1, S2 = +1), 
-  #          "S1_to_S2"),
+  reaction(~ alpha * S1,
+           c(S1 = -1, S2 = +1),
+           "S1_to_S2"),
   
   # Infection S2 -> E2
   reaction(
@@ -172,7 +172,7 @@ gillespie_output <- ssa(
   reactions = compiled_reactions,
   params = params,
   method = ssa_exact(),
-  final_time = 90,
+  final_time = 1825,
   census_interval = 1,
   verbose = TRUE
 )
@@ -282,73 +282,50 @@ ggplot(summary_df, aes(x = time)) +
   theme_minimal(base_size = 14) +
   scale_y_continuous(expand = c(0, 0))
 
-# Suppose 'sim_df' is your main model run with cumulative_cases
-# 'summary_df' has mean, median, 95% interval from multiple stochastic runs
-
-ggplot() +
-  # 95% interval from stochastic runs
-  geom_ribbon(data = summary_df, aes(x = time, ymin = p05, ymax = p95),
-              fill = "lightblue", alpha = 0.4) +
-  
-  # Mean line from stochastic runs
-  geom_line(data = summary_df, aes(x = time, y = mean),
-            color = "blue", linetype = "dashed", size = 1) +
-  
-  # Median line from stochastic runs
-  geom_line(data = summary_df, aes(x = time, y = median),
-            color = "red", linetype = "dotted", size = 1) +
-  
-  # Main line: cumulative cases from the actual model run
-  geom_line(data = sim_df, aes(x = time, y = cumulative_cases),
-            color = "black", size = 1.2) +
-  
+#Plot the susceptible human population over time separately
+ggplot(sim_df, aes(x = time)) +
+  geom_line(aes(y = S1, color = "S1"), size = 1)+
   labs(
     x = "Time (days)",
-    y = "Cumulative cases",
-    title = "Stochastic simulation vs model cumulative cases"
+    y = "Number of Susceptible Humans",
+    title = "Susceptible Human Population Over Time"
   ) +
-  theme_minimal(base_size = 14) +
-  scale_y_continuous(expand = c(0, 0)) +
-  theme(legend.position = "none")
-
-# sim_matrix: columns = stochastic simulations, rows = time points
-# sim_df$cumulative_cases: main model run
-
-# Add main model run as one column
-sim_matrix_with_main <- cbind(sim_matrix, sim_df$cumulative_cases)
-
-summary_df <- data.frame(
-  time = time_points,
-  median = apply(sim_matrix_with_main, 1, median),
-  mean   = apply(sim_matrix_with_main, 1, mean),
-  p95    = apply(sim_matrix_with_main, 1, quantile, probs = 0.975),
-  p05    = apply(sim_matrix_with_main, 1, quantile, probs = 0.025)
-)
-
-
-ggplot() +
-  # 95% interval from stochastic runs
-  geom_ribbon(data = summary_df, aes(x = time, ymin = p05, ymax = p95),
-              fill = "lightblue", alpha = 0.4) +
-  
-  # Mean line (blue dashed)
-  geom_line(data = summary_df, aes(x = time, y = mean),
-            color = "blue", linetype = "dashed", size = 1) +
-  
-  # Median line (red dotted)
-  geom_line(data = summary_df, aes(x = time, y = median),
-            color = "red", linetype = "dotted", size = 1) +
-  
-  # Main model run (black solid)
-  geom_line(aes(x = time_points, y = sim_df$cumulative_cases),
-            color = "black", size = 1.2) +
-  
+  scale_color_manual(values = c("S1" = "blue", "S2" = "green"), 
+                     name = "Compartments") +
+  theme_minimal(base_size = 14)
+#Plot the s2 group over time
+  ggplot(sim_df, aes(x = time)) +
+    geom_line(aes(y = S2, color = "S2"), size = 1) +
   labs(
     x = "Time (days)",
-    y = "Cumulative cases",
-    title = "Stochastic simulations vs main model cumulative cases"
+    y = "Number of Susceptible Humans",
+    title = "Susceptible Human Population Over Time"
   ) +
-  theme_minimal(base_size = 14) +
-  scale_y_continuous(expand = c(0, 0)) +
-  theme(legend.position = "none")
+  scale_color_manual(values = c("S2" = "green"), 
+                     name = "Compartments") +
+  theme_minimal(base_size = 14)
 
+#Plot the mosquito population ( Sm, Em, Im_m) over time separately
+ggplot(sim_df, aes(x = time)) +
+  geom_line(aes(y = Sm, color = "Sm"), size = 1) +
+  geom_line(aes(y = Em, color = "Em"), size = 1) +
+  geom_line(aes(y = Im_m, color = "Im_m"), size = 1) +
+  labs(
+    x = "Time (days)",
+    y = "Number of Mosquitoes",
+    title = "Mosquito Population Over Time"
+  ) +
+  scale_color_manual(values = c("Sm" = "orange", "Em" = "purple", "Im_m" = "red"), 
+                     name = "Compartments") +
+  theme_minimal(base_size = 14)
+
+#Plot the human population dynamics(Exposed/ Infectious/recovered)
+ggplot(sim_df, aes(x=time))+
+  geom_line(aes(y=E1+E2, color="Exposed"), size=1)+
+  geom_line(aes(y=Im+Is, color="Infectious"), size=1)+
+  geom_line(aes(y=C, color="Chronic"), size=1)+
+  geom_line(aes(y=R, color="Recovered"), size=1)+
+  labs(
+    x="Time(days)",
+    y="Population",
+    title="Human Population Dynamics")
