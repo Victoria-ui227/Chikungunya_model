@@ -254,3 +254,5 @@ ggplot(sim_df, aes(x = time)) +
   scale_color_manual(values = c("Sm" = "orange", "Em" = "purple", "Im_m" = "red"), 
                      name = "Compartments") +
   theme_minimal(base_size = 14)
+
+
