@@ -77,7 +77,7 @@ params <- c(
   prop_age1_Is = 0.003,      
   prop_age1_C = 0.015,       
   prop_age1_R = 0.85,
-  prop_age1_V=0.8,
+  # prop_age1_V=0.8,
   
   vaccination_rate_1=0.03,
   vaccination_rate_2=0.01,
@@ -454,11 +454,11 @@ twenty_percent_vax_df <- bind_rows(out4)
 twenty_percent_vax_df$infectious_twenty_percent <- twenty_percent_vax_df$Im + twenty_percent_vax_df$Is
 twenty_percent_vax_df$type <- "Vaccination"
 
-combined_df <- combined_df %>%
-  left_join(
-    twenty_percent_vax_df %>% select(time, infectious_twenty_percent),
-    by = "time"
-  )
+# combined_df <- combined_df %>%
+#   left_join(
+#     twenty_percent_vax_df %>% select(time, infectious_twenty_percent),
+#     by = "time"
+#   )
 
 # Combine all scenarios into one dataframe
 combined_df <- baseline_df %>%
@@ -483,8 +483,8 @@ combined_df$date <- as.Date("2025-01-01") + (combined_df$time - 1)
 ggplot(combined_df, aes(x = date)) +
   geom_line(aes(y = infectious_baseline, color = "Baseline"), size = 1) +
   geom_line(aes(y = infectious_vax, color = "Vaccination 5%"), size = 1) +
-  geom_line(aes(y = infectious_ten_percent, color = "Vaccination 10%"), size = 1) +
-  geom_line(aes(y = infectious_twenty_percent, color = "Vaccination 20%"), size = 1) +
+  # geom_line(aes(y = infectious_ten_percent, color = "Vaccination 10%"), size = 1) +
+  # geom_line(aes(y = infectious_twenty_percent, color = "Vaccination 20%"), size = 1) +
   labs(
     x = "Date",
     y = "Infectious Humans",
@@ -492,9 +492,9 @@ ggplot(combined_df, aes(x = date)) +
   ) +
   theme_minimal() +
   scale_color_manual(values = c(
-    "Baseline" = "black",
-    "Vaccination 5%" = "blue",
-    "Vaccination 10%" = "green",
-    "Vaccination 20%" = "red"
+    "Baseline" = "blue",
+    "Vaccination 5%" = "red"
+    # "Vaccination 10%" = "green",
+    # "Vaccination 20%" = "red"
   ))
 
